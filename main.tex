@@ -858,7 +858,7 @@ AutoRegressive Conditional Heteroskedasticity - volatility (variance) clustering
 
     $H_1:$ ARCH of order $p$ in disturbances
 
-    \[\text{Test statistic and distribution: } ARCH(p) \sim \chi_p^2\]
+    \[\text{Test statistic and distribution: } ARCH(p) = TR^2 \sim \chi_p^2\]
 
     where $p$ is the order of ARCH tested.
 \end{mdframed}
@@ -3367,6 +3367,22 @@ where $R^2$ is the coefficient of determination from regressing a vector of ones
     \end{enumerate}
 \end{procedure}
 
+\paragraph{Inference}
+If we test the same number of restrictions using the three tests, it follows that
+\begin{equation}
+\operatorname{Prob}\left(\chi^2(m)>L M\right) \geq \operatorname{Prob}\left(\chi^2(m)>L R\right) \geq \operatorname{Prob}\left(\chi^2(m)>W D\right) .
+\end{equation}
+
+This means that the tests can yield conflicting conclusions, but because of the ordering we know:
+\begin{itemize}
+    \item If the LM test rejects the null, so will the LR and WALD tests.
+    \item If the WD test fails to reject the null, then so will the LR and LM tests.
+\end{itemize}
+
+\begin{note}
+    This ranking only holds when testing linear restrictions in the normal linear regression model.
+\end{note}
+
 \subsubsection{Application of our tests}
 
 \paragraph{testing our durations model} \mbox{}
@@ -3695,44 +3711,762 @@ The log-likelihood function observation $t$ is then
 \end{equation}
 
 With $h_t$ representing the conditional variance from the GARCH(p,q) model.
- 
+
+\subsubsection{Modelling News}
+
+In thif GARCH(1,1) model:
+\begin{equation}
+\begin{aligned}
+r_t & =\mu_0+u_t \\
+h_t & =\alpha_0+\alpha_1 u_{t-1}^2+\beta_1 h_{t-1}
+\end{aligned}
+\end{equation}
+
+$u_{t-1}$ measures shocks that embody the effects of news relevant to financial markets that arrived in period $t-1$. We would expect positive disturbance values from positive news/shocks.
+
+In the GARCH(1,1), shocks of the same magnitude, \textbf{positive or negative}, result in the same increase in volatility $h_t$. This is because it is only the $u_{t-1}^2$ term that is in our conditional variance equation, $h_t$.
+
+\paragraph{Negative News}
+
+In the case of stock markets, it would be fair to assume that there is an asymmetric response to the news. In this case we would see a larger effect on conditional variance from a negative shock.
+
+\begin{note}
+    A negative shock raises the debt-equity ratio, thereby increasing leverage and therefore risk.
+\end{note}
+
+ This leveraged effect is what suggests that bad news leads to a greater increase in conditional variance. This leads to asymmetric GARCH models.
+
+ \subsection{Asymmetric GARCH Models}
+
+ There are two popular approaches to Asymmetric responses to the news.
+
+ \subsubsection{TGARCH models}
+
+ The Threshold-GARCH (1,1,) model specification of the conditional variance is:
+ \begin{equation}
+ \label{TGARCGH}
+h_t=\alpha_0+\alpha_1 u_{t-1}^2+\beta_1 h_{t-1}+\lambda u_{t-1}^2 l_{t-1}
+\end{equation}
+
+where
+\begin{equation}
+l_{t-1}= \begin{cases}1 & : \quad u_{t-1} \geq 0 \\
+0 &: \quad u_{t-1}<0\end{cases}
+\end{equation}
+
+The leverage effect in equity markets means that we expect $\lambda<0$.
+
+ \subsubsection{EGARCH}
+
+ The \textbf{Exponential GARCH}(1,1) specification for the conditional Variance is
+ \begin{equation}
+ \label{EGARCH}
+\log h_t=\alpha_0+\alpha_1\left|\frac{u_{t-1}}{\sqrt{h_{t-1}}}\right|+\lambda_1 \frac{u_{t-1}}{\sqrt{h_{t-1}}}+\beta_1 \log h_{t-1}
+\end{equation}
 
 
+Asymmetries are allowed for under EGARCH, since \textit{if the relationship between volatility and returns is negative}, $\lambda_1$ will be negative.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=8cm]{pics/GARCH TARCH.png}
+    \caption{Comparing the Impact curves of a GARCH(1,1) to a TARCG(1,1)}
+    \label{fig:GARCH TARCH}
+\end{figure}
+
+ \subsection{Forecasting with GARCH}
+
+ Forecasts for the GARCH(1,1) model are:
+
+ \begin{equation}
+h_{T+k \mid T}= \begin{cases}\alpha_0+\alpha_1 u_T^2+\beta_1 h_T & k=1 \\ \alpha_0+\left(\alpha_1+\beta_1\right) h_{T+k-1 \mid T} & k \geqslant 2\end{cases}
+\end{equation}
+
+The conditional variance of the k-period return is then
+\begin{equation}
+\operatorname{var}\left(r_{T+1}(k)\right)=k \alpha_0+\alpha_1 u_T^2+\left(\left(\alpha_1+\beta_1\right)+\left(\alpha_1+\beta_1\right)^2+\cdots+\left(\alpha_1+\beta_1\right)^{k-1}\right) h_{T+1 \mid T}
+\end{equation}
+
+\begin{note}
+    In practice, forecasts for the GARCH(1,1) model are done by replacing the unknown parameters $\alpha_0, \alpha_1, \beta_1$, and the unknown quantities $u_T^2$ and $h_T$, with their respective sample estimates.
+\end{note}
+
+ The forecast from a GARCH(1,1) will converge relatively quickly to the long-term average volatility implied by the model, which is given by
+
+ \[h = \dfrac{\alpha_0}{1-\alpha_1-\beta_1}\]
+
+ The unconditional variance $h$ is defined as long as $\alpha_1 + \beta_1 < 1$.
+
+ \subsubsection{Accuracy of Forecasts}
+
+ The standard method to assess volatility models is to evaluate the forecast using a volatility proxy such as the squared return, $r_t^2$.
+
+ \paragraph{Mincer-Zarnowitz Regressions}
+ a.k.a MZ regressions.
+ \[h_t^2 = \delta_0 + \delta_1 \hat{h}_t + e_t\]
+ where $e_t$ is a disturbance term.
+
+ \begin{procedure}
+     To test for an unbiased estimator:
+
+     \begin{align*}
+         H_0&: \delta_0 \text{ and } \delta_1 = 1 \\
+         H_1&: \delta_1\neq0 \text { or } \delta_1 \neq1
+     \end{align*}
+
+     If we do \textbf{not} reject our null hypothesis, then $\hat{h}_t$ is an \textbf{unbiased estimator} of $r_t^2$.
+ \end{procedure}
+
+\begin{example}
+    Adaptation of the MZ Regression:
+
+    \begin{equation}
+\begin{aligned}
+\left|r_t\right| & =\delta_0+\delta_1 \sqrt{\widehat{h}_t}+e_t \\
+\log r_t^2 & =\delta_0+\delta_1 \log \widehat{h}_t+e_t
+\end{aligned}
+\end{equation}
+
+which use transformations of the volatility proxy to reduce the impact of large returns.
+\end{example}
 
 
+\subsubsection{Quasi-Likelihood}
+
+Another approach is to use the measures of forecast performance outlined in Chapter 6 to assess volatility forecasts. There have been developments in creating new loss functions. This example is the Quasi-Likelihood loss function:
+\[\text{QLIKE } = \log \hat{h}_t + \dfrac{r_t^2}{\hat{h}_t}\]
+
+\begin{note}
+    The QLIKE function can become negative when dealing with very small returns because the term in $\log h_t$ will be negative and dominate the other term in the expression.
+
+    To avoid this we can create a specification that is always positive:
+    \[\text{QLIKE } = \dfrac{r_t^2}{\hat{h}_t} - \log \left( \dfrac{r_t^2}{\hat{h}_t}\right) - 1\]
+\end{note}
+
+The QLIKE criterion is \textbf{not symmetric}. it penalises underestimating volatility more heavily than overestimating it. This could be desirable if you are a conservative risk manager.
+
+ \begin{figure}
+     \centering
+     \includegraphics[width=9cm]{pics/QLIKE.png}
+     \caption{Comparing the MAE (dashed) and QLIKE functions for forecast values when the hypothetical true value is 2}
+     \label{fig:QLIKE}
+ \end{figure}
 
 
+\subsection{Applications}
 
+\subsubsection{GARCH-M Model}
 
+The GARCH-M model is an extension of the CAPM with an allowance for time-varying risk to identify the risk and return preference of investors. Investors must be compensated for bearing more risk (high volatility), meaning we should expect a positive relationship between the mean and the risk of the portfolio.
 
+\begin{equation}
+\begin{aligned}
+r_{i t}-r_{f t} & =\mu_0+\mu_1 h_t^\omega+\mu_2\left(r_{m t}-r_{f t}\right)+u_t \\
+u_t & \sim N\left(0, h_t\right) \\
+h_t & =\alpha_0+\alpha_1 u_{t-1}^2+\beta_1 h_{t-1},
+\end{aligned}
+\end{equation}
 
+with parameters $\theta = \{\mu_0, \mu_1, \mu_2, \alpha-0, \alpha_1, \beta_1\}$. The risk-return trade-off is given by the term $\mu_1 h_t^\omega$. When $\omega-0.5$, the risk-return trade-off is specified in terms of the conditional standard deviation. When $\omega_1$, then the relationship is expressed in terms of conditional variance.
 
+We can test to see if there is a trade-off between risk and return:
+\begin{align*}
+    H_0&: \mu_1 = 0 \text{ [no trade-off]} \\
+    H_1&: \mu_1 \neq0 \text{ [trade-off]}
+\end{align*}
 
+\subsubsection{Heatwaves and Meteor Showers}
 
+An important application of GARCH models examines how volatility is transmitted through different regions of the world during the course of a global financial trading day.
 
+An approach splits up each calendar day into three trading zones, Japan (12am-7am GMT), Europe (7am-12:30pm GMT) and the US (12:30pm-9pm GMT)
 
+\begin{equation}
+\underbrace{\overbrace{12 \mathrm{am} \cdots 7 \mathrm{am}}^{\text {Japan }}\quad \overbrace{7 \mathrm{am} \cdots 12: 30 \mathrm{pm}}^{\text {Europe }}\quad \overbrace{12: 30 \mathrm{pm} \cdots 9 \mathrm{pm}}^{\text {U.S. }}}_{\text{One Trading Day}}
+\end{equation}
 
+Define $r_1, r_2, r_3$ as the daily returns to Japanese, European and US zones respectively. The model is specified as:
+\begin{equation}
+    \begin{gathered}
+    \left[\begin{array}{l}
+r_{1 t} \\
+r_{2 t} \\
+r_{3 t}
+\end{array}\right]=\left[\begin{array}{l}
+u_{1 t} \\
+u_{2 t} \\
+u_{3 t}
+\end{array}\right], \quad\left[\begin{array}{l}
+u_{1 t} \\
+u_{2 t} \\
+u_{3 t}
+\end{array}\right] \sim N\left(\left[\begin{array}{l}
+0 \\
+0 \\
+0
+\end{array}\right],\left[\begin{array}{ccc}
+h_{1 t} & 0 & 0 \\
+0 & h_{2 t} & 0 \\
+0 & 0 & h_{3 t}
+\end{array}\right]\right) \\
+{\left[\begin{array}{l}
+h_{1 t} \\
+h_{2 t} \\
+h_{3 t}
+\end{array}\right]=\left[\begin{array}{l}
+\alpha_{10} \\
+\alpha_{20} \\
+\alpha_{30}
+\end{array}\right] } +\left[\begin{array}{ccc}
+0 & 0 & 0 \\
+\alpha_{21} & 0 & 0 \\
+\alpha_{31} & \alpha_{32} & 0
+\end{array}\right]\left[\begin{array}{l}
+u_{1 t}^2 \\
+u_{2 t}^2 \\
+u_{3 t}^2
+\end{array}\right]+\left[\begin{array}{ccc}
+\beta_{11} & 0 & 0 \\
+0 & \beta_{22} & 0 \\
+0 & 0 & \beta_{33}
+\end{array}\right]\left[\begin{array}{c}
+h_{1 t-1} \\
+h_{2 t-1} \\
+h_{3 t-1}
+\end{array}\right] \\
++  {\left[\begin{array}{ccc}
+\gamma_{11} & \gamma_{12} & \gamma_{13} \\
+0 & \gamma_{22} & \gamma_{23} \\
+0 & 0 & \gamma_{33}
+\end{array}\right]\left[\begin{array}{l}
+u_{1 t-1}^2 \\
+u_{2 t-1}^2 \\
+u_{3 t-1}^2
+\end{array}\right] . }
+\end{gathered}
+\end{equation}
 
+This structure implies that:
+\begin{enumerate}
+    \item Japan shocks, $u_{1t}^2$ can potentially influence volatility in Europe and the US on the same day, via the coefficients $\alpha_{21}$ and $\alpha_{31}$.
+    \item News from Europe can influence the US on the same day through $\alpha_{32}$, but not Japan as the market is already closed.
+    \item The shocks in the US will only be transmitted to Japan and Europe the following day with parameters $\gamma_{13}, \gamma_{23}$.
+\end{enumerate}
 
+We aim to examine international linkages in volatility between these regions and investigate in particular two patterns as possible descriptors of international volatility transmission.
+\begin{definition}
+\begin{itemize}
+    \item \textbf{Heatwaves}: Volatility in any one region is primarily a function of the previous day's volatility in the same region, $\beta_{ii} \neq0$.
 
+    \item \textbf{Meteor Shower}: Volatility in one region is driven primarily by volatility in the region immediately preceding it in terms of the calendar time, $\alpha_{ij}\neq0$.    
+\end{itemize}    
+\end{definition}
 
+\begin{procedure}
+    A technically correct implementation would be to use high-frequency data and compute returns in non-overlapping zones as:
 
+    \begin{equation}
+r_{i t}=\left(\log P_{i t}^c-\log P_{i t}^o\right) / \sqrt{n h_i}, \quad i=1,2,3
+\end{equation}
+in which $P_{it}^c$ is a closing price of the relevant asset price in zone $i$ n day $t$. $P_{it}^o$ is the opening price.
+\end{procedure}
 
+\begin{table}[ht]
+    \centering
+    \includegraphics[width=10cm]{pics/heatwave meteor.png}
+    \caption{Equation-by-equation estimation by maximum likelihood gives us this table}
+    \label{tab: heatwaves and meteor showers}
+\end{table}
 
+All $h_{it-1}$ are statistically significant confirming our heat wave hypothesis. Japan affects Europe and the US on the same day; the US affects Japan the next day, confirming meteor showers.
 
-
-
-
-
-
-
+\clearpage
 \newpage
 \section{Multivariate GARCH Models}
 \textbf{Chapter 14}
 
+If we want to estimate covariances, we would want to use a multivariate model. Additionally, it is important to allow covariances, to vary over time because the relationships between assets are time-varying. So, we would use a multivariate GARCH model. This allows for both variances and covariances to be time-varying.
+
+\subsection{Motivating Examples}
+
+\subsubsection{Time Varying Beta (CAPM)}
+
+In our simple CAPM:
+\[E[r_{it} - r_f] = \beta_i E[r_{mt}-r_f]\]
+
+where the CAPM $\beta$ is estimated as:
+\begin{equation}
+\begin{aligned}
+\beta & =\frac{\operatorname{cov}\left(r_{i t}-r_{f t}, r_{m t}-r_{f t}\right)}{\operatorname{var}\left(r_{m t}-r_{f t}\right)} \\
+& =\frac{E\left[\left(r_{i t}-r_{f t}-E\left[r_{i t}-r_{f t}\right]\right)\left(r_{m t}-r_{f t}-\mathrm{E}\left[r_{m t}-r_{f t}\right]\right)\right]}{E\left[\left(r_{m t}-r_{f t}-\mathrm{E}\left[r_{m t}-r_{f t}\right]\right)^2\right]},
+\end{aligned}
+\end{equation}
+
+The measure of $\beta$-risk is by definition constant, as it is based on the ratio of the unconditional covariance between excess market and asset returns, and the unconditional variance of the excess market returns. This constant $\beta$ is unrealistic in reality. We can respecify our $\beta_i$ in terms of conditional expectations rather than unconditional expectations. 
+
+\begin{equation}
+\beta_t=\frac{\mathrm{E}_{t-1}\left[\left(r_{i t}-r_{f t}-\mathrm{E}_{t-1}\left[r_{i t}-r_{f t}\right]\right)\left(r_{m t}-r_{f t}-\mathrm{E}_{t-1}\left[r_{m t}-r_{f t}\right]\right)\right]}{\mathrm{E}_{t-1}\left[\left(r_{m t}-r_{f t}-\mathrm{E}_{t-1}\left[r_{m t}-r_{f t}\right]\right)^2\right]},
+\end{equation}
+
+This is now a time-varying $\beta$. To use this new time-varying $\beta$, we must specify models of the conditional variance and covariance. GARCH models are able to specify time-varying conditional variance, but we need a bivariate model for estimating the time-varying conditional \textit{covariance}.
+
+\paragraph{Estimating with OLS}
+
+We are unable to specify
+\[(r_{it}-r_{f}) = \alpha + \boldsymbol{\beta_{it}} (r_{mt}-r_f) + \epsilon_{it}\]
+because we do not have enough degrees of freedom.
+
+\subsubsection{Minimum Variance Portfolio}
+
+If we have a portfolio with $N=2$ assets with log returns $r_{1t}, r_{2t}$. Thus, the optimal weightings of the minimum variance portfolio are
+\begin{equation}
+w_1=\frac{\operatorname{var}\left(r_{2 t}\right)-\operatorname{cov}\left(r_{1 t}, r_{2 t}\right)}{\operatorname{var}\left(r_{1 t}\right)+\operatorname{var}\left(r_{2 t}\right)-2 \operatorname{cov}\left(r_{1 t}, r_{2 t}\right)}
+\end{equation}
+where $w_2 = 1-w_1$. The optimal weights are assumed to be constant over time as they are a function of the two unconditional variances and the unconditional covariance. To relax this assumption, we can replace our unconditional expectations with conditional expectations.
+
+\subsubsection{Value at Risk}
+
+With our equal-weighted $N=2$ asset portfolio, the 1-day VaR is:
+
+\[\text{VaR} = \sqrt{\text{VaR}_1^2 + \text{VaR}_2^2 + 2 \rho \text{VaR}_1\text{VaR}_2}, \]
+
+where 
+\begin{equation}
+\rho=\frac{\operatorname{cov}\left(r_{1 t}, r_{2 t}\right)}{\sqrt{\operatorname{var}\left(r_{1 t}\right) \operatorname{var}\left(r_{2 t}\right)}}
+\end{equation}
+
+The maximum loss on the portfolio with a probability of 1\% is
+\[\text{VaR}_i = E(r_{it}) - 2.33 \sqrt{\operatorname{var}(r_{it})}, \quad 1 = 1,2\]
+
+Because the variances and the correlation are all unconditional measures, the VaR of the portfolio is restricted to be constant over time. We need a bivariate GARCH model to do this.
+
+\subsection{Early Covariance Estimators}
+If we have asset log returns in vector $r_t = [r_{1t} r_{2t} \ldots r_{Nt}]^\prime$. The resulting measures will be conditional sample covariance matrices.
+
+\subsubsection{Historical Covariance}
+
+The multivariate version of the historical estimate of the conditional covariance matrix of $r_t$ is the sample moment matrix
+\begin{equation}
+H_t=\frac{1}{M} \sum_{j=1}^M r_{t-j} r_{t-j}^{\prime}
+\end{equation}
+
+\begin{note}
+The forecast of volatility for $k$-periods ahead is simply given by the current value $H-t$ irrespective of the value of the forecast horizon $k$.    
+\end{note}
+
+\subsubsection{Multivariate EWMA}
+
+The multivariate version of the exponentially weighted moving average estimate of the conditional covariance matrix is
+\begin{equation}
+\begin{aligned}
+H_t & =(1-\lambda) \sum_{j=0}^{\infty} \lambda^j r_{t-j-1} r_{t-j-1}^{\prime} \\
+& =(1-\lambda) r_{t-1} r_{t-1}^{\prime}+(1-\lambda)\left[\lambda r_{t-2} r_{t-2}^{\prime}+\lambda^2 r_{t-3} r_{t-3}^{\prime}+\cdots\right] \\
+& =(1-\lambda) r_{t-1} r_{t-1}^{\prime}+(1-\lambda) \lambda\left[r_{t-2} r_{t-2}^{\prime}+\lambda r_{t-3} r_{t-3}^{\prime}+\cdots\right] \\
+& =(1-\lambda) r_{t-1} r_{t-1}^{\prime}+\lambda H_{t-1},
+\end{aligned}
+\end{equation}
+where $\lambda$ is the decay parameter.
+
+\subsubsection{Constant Correlation}
+
+Given our equation for correlation
+\begin{equation*}
+\rho=\frac{\operatorname{cov}\left(r_{1 t}, r_{2 t}\right)}{\sqrt{\operatorname{var}\left(r_{1 t}\right) \operatorname{var}\left(r_{2 t}\right)}}
+\end{equation*}
+
+We can rearrange this expression to give the covariance as
+\[\operatorname{cov}\left(r_{1 t}, r_{2 t}\right) = \rho \sqrt{\operatorname{var}\left(r_{1 t}\right) \operatorname{var}\left(r_{2 t}\right)}\]
+
+This suggests that we can construct the time-varying covariance by simply replacing the unconditional variances, with their respective conditional variances based on univariate GARCH models and $\rho$ is estimated using the sample correlation coefficient.
+
+
+
+\subsection{BEKK Model}
+\begin{definition}
+
+The multivariate GARCH model a.k.a the BEKK model is specified as:
+
+Consider a set of $N$ log returns $r_t = [r_{1t} r_{2t} \ldots r_{Nt}]^\prime$. A time-varying estimate of the conditional covariance matrix 
+\begin{equation}
+H_t=\left[\begin{array}{cccc}
+h_{11 t} & h_{12 t} & \cdots & h_{1 N t} \\
+h_{21 t} & h_{22 t} & \cdots & h_{2 N t} \\
+\vdots & \vdots & \ddots & \vdots \\
+h_{N 1 t} & h_{N 2 t} & \cdots & h_{N N t}
+\end{array}\right]
+\end{equation}
+with conditional covariances as the off-diagonal terms which satisfy the symmetry restriction $h_{ijt} = h_{jit}$. The matrix \textbf{must} be positively definite (this is a variance/covariance matrix, it wouldn't make sense for it to be negative). For a bivariate model, the conditions for positive definiteness are
+\begin{equation}
+    \label{conditions for positive definiteness}
+    h_{11t}>0, \quad h_{11t} h_{22t} - h_{12t}^2>0
+\end{equation}
+\end{definition}
+
+\subsubsection{CCC Model}
+
+Constant Conditional Correlation Model. In the simplest 2-asset case, we have:
+\begin{equation}
+\left(\begin{array}{l}
+r_{1, t} \\
+r_{2, t}
+\end{array}\right)=\left(\begin{array}{l}
+u_{1 t} \\
+u_{2 t}
+\end{array}\right)
+\end{equation}
+where $u_t|I_{t-1}\sim MN(0,H_t)$ and 
+\begin{equation}
+H_t=\left[\begin{array}{ll}
+h_{11 t} & h_{12 t} \\
+h_{12 t} & h_{22 t}
+\end{array}\right]
+\end{equation}
+
+The components of $H_t$ are
+\begin{equation}
+\left(\begin{array}{l}
+h_{11 t} \\
+h_{12 t} \\
+h_{22 t}
+\end{array}\right)=\left(\begin{array}{c}
+c_{11}+a_{11} u_{1 t-1}^2+b_{11} h_{11 t-1} \\
+\rho_{12} \sqrt{h_{11 t} h_{22 t}} \\
+c_{22}+a_{22} u_{2 t-1}^2+b_{22} h_{22 t-1}
+\end{array}\right) .
+\end{equation}
+\begin{note}
+Even though the correlation coefficients are assumed to be constant, the covariances are time-varying.    
+\end{note}
+Our second condition for positive definiteness is easily satisfied, non-negativity of $h_{11t}$ requires that $c_{ii} > 0, a_{ii} \geq 0, b_{ii} \geq0$.
+
+\subsubsection{BEKK Spec}
+The BEKK specification of the conditional covariance matrix, $H_t$, is
+\begin{equation}
+\label{BEKK spec}
+H_t = CC^\prime + A u_{t-1}u_{t-1}^\prime A^\prime + B H_{t-1} B^\prime
+\end{equation}
+This ensures positive definiteness of $H_t$ because coefficients are squared.
+
+\paragraph{Asymmetric BEKK}
+
+The parameter matrices are
+\begin{equation}
+C=\left[\begin{array}{cc}
+c_{11} & 0 \\
+c_{21} & c_{22}
+\end{array}\right], \quad A=\left[\begin{array}{ll}
+a_{11} & a_{12} \\
+a_{21} & a_{22}
+\end{array}\right], \quad B=\left[\begin{array}{ll}
+b_{11} & b_{12} \\
+b_{21} & b_{22}
+\end{array}\right] .
+\end{equation}
+
+\paragraph{Symmetric BEKK}
+\begin{equation}
+C=\left[\begin{array}{cc}
+c_{11} & 0 \\
+c_{21} & c_{22}
+\end{array}\right], \quad A=\left[\begin{array}{ll}
+a_{11} & a_{12} \\
+a_{12} & a_{22}
+\end{array}\right], \quad B=\left[\begin{array}{ll}
+b_{11} & b_{12} \\
+b_{12} & b_{22}
+\end{array}\right] .
+\end{equation}
+
+\paragraph{Diagonal BEKK}
+
+\begin{equation}
+C=\left[\begin{array}{cc}
+c_{11} & 0 \\
+c_{21} & c_{22}
+\end{array}\right], \quad A=\left[\begin{array}{cc}
+a_{11} & 0 \\
+0 & a_{22}
+\end{array}\right], \quad B=\left[\begin{array}{cc}
+b_{11} & 0 \\
+0 & b_{22}
+\end{array}\right]
+\end{equation}
+
+\subsubsection{Estimation}
+
+We use maximum likelihood for estimation. The log-likelihood function of a multivariate GARCH model is given by
+
+\begin{equation}
+    \label{MGARCH log likelihood function}
+    \log L(\theta) = \dfrac{1}{T}\sum_{i=1}^T \log L_t = \dfrac{1}{T} \sum_{i=1}^T \log f(r_{1t}, r_{2t}, \ldots, r_{Nt};\theta),
+\end{equation}
+where $f(r_{1t}, r_{2t}, \ldots, r_{Nt};\theta)$ is an N-dimensional conditional multivariate probability distribution, and $\theta$ is the vector of unknown parameters. We must specify the function form of $f(r_{1t}, r_{2t}, \ldots, r_{Nt};\theta)$. There are two popular ways of doing this
+
+\paragraph{Multivariate Normal Distribution} \mbox{}
+
+The multivariate normal distribution is given by
+\begin{equation}
+f\left(r_{1 t}, r_{2 t}, \cdots, r_{N t} ; \theta\right)=\left(\frac{1}{2 \pi}\right)^{N / 2}\left|H_t\right|^{-1 / 2} \exp \left(-0.5 u_t^{\prime} H_t^{-1} u_t\right)
+\end{equation}
+
+with log-likelihood function 
+\begin{equation}
+\log L_t=-\frac{N}{2} \log (2 \pi)-\frac{1}{2} \log \left|H_t\right|-\frac{1}{2} u_t^{\prime} H_t^{-1} u_t
+\end{equation}
+
+\paragraph{Standardised Multivariate t distribution}
+
+The multivariate standardised $t$ distribution is given by
+\begin{equation}
+f\left(r_{1 t}, r_{2 t}, \cdots, r_{N t} ; \theta\right)=\frac{\Gamma\left(\frac{\nu+N}{2}\right)}{(\pi(\nu-2))^{N / 2} \Gamma\left(\frac{\nu}{2}\right)} \times\left|H_t\right|^{-1 / 2}\left(1+\frac{u_t^{\prime} H_t^{-1} u_t}{\nu-2}\right)^{-\left(\frac{\nu+N}{2}\right)}
+\end{equation}
+and the log-likelihood function is
+\begin{equation}
+\begin{aligned}
+\log L_t & =\log \Gamma\left(\frac{\nu+N}{2}\right)-\frac{N}{2} \log (\pi(\nu-2))-\log \Gamma\left(\frac{\nu}{2}\right) \\
+& -\frac{1}{2} \log \left|H_t\right|-\left(\frac{\nu+N}{2}\right)\left(1+\frac{u_t^{\prime} H_t^{-1} u_t}{\nu-2}\right) .
+\end{aligned}
+\end{equation}
+
+\subsection{Modelling Correlation}
+
+One of the drawbacks of the BEKK model is that it is difficult to apply to models containing multiple assets. This is because the number of unknown parameters grows exponentially. This means that the BEKK in practice is limited to portfolios with $N<10$ assets.
+
+\subsubsection{DCC Model}
+
+The Dynamic Conditional Correlation (DCC) model, is a different specification which is now one of the most widely adopted MGARCH specifications in empirical work.
+\begin{definition}
+The DCC model is based on specifying the conditional covariance matrix as
+\begin{equation}
+    \label{DCC spec}
+    H_t = S_t R_t S_t
+\end{equation}
+where $R_t$ is an $(N\times N)$ conditional correlation matrix, and $S_t$ is a diagonal matrix containing the conditional standard deviations
+\begin{equation}
+S_t=\left[\begin{array}{ccc}
+\sqrt{h_{11 t}} & & 0 \\
+& \ddots & \\
+0 & & \sqrt{h_{N N t}}
+\end{array}\right].
+\end{equation}
+
+\begin{note}
+This is equivalent to the bivariate case in which the covariance between two assets is constructed from the product of the correlation and the two standard deviations.    
+\end{note}
+
+The \textbf{conditional variances} are of the form
+\[h_{iit} = \alpha_{i0} + \alpha_{i1} u_{it-1}^2 + \beta _{i1} h_{iit-1}, \quad i =1,2,\ldots, N.\]
+
+the \textbf{conditional correlation} matrix $R_t$ is
+\begin{equation}
+R_t=\operatorname{diag}\left(Q_t\right)^{-1 / 2} Q_t \operatorname{diag}\left(Q_t\right)^{-1 / 2}
+\end{equation}
+We express $H_t$ through a decomposition. $Q_t$ represents a pseudo-correlation matrix that has a GARCH(1,1) specification
+\[Q_t = (1-\alpha-\beta) \boldsymbol{Q} + \alpha z_{t-1}z_{t-1}^\prime + \beta Q_{t-1},\]
+with unknown scalar parameters $\alpha$ and $\beta$ and $z_{it} = u_{it}/\sqrt{h_{it}}$ is a standardised disturbance. The matrix $\boldsymbol{Q}$ is the unconditional second-moment matrix of standardised disturbances given by
+
+\begin{equation}
+Q=\frac{1}{T} \sum_{t=1}^T\left[\begin{array}{cccc}
+z_{1 t}^2 & z_{1 t} z_{2 t} & \cdots & z_{1 t} z_{N t} \\
+z_{2 t} z_{1 t} & z_{2 t}^2 & \cdots & z_{2 t} z_{N t} \\
+\vdots & \vdots & \ddots & \vdots \\
+z_{N t} z_{1 t} & z_{N t} z_{2 t} & \cdots & z_{N t}^2
+\end{array}\right]
+\end{equation}
+
+\end{definition}
+
+The CCC is a special case of the DCC where $\alpha=\beta=0$, resulting in $Q_t = \boldsymbol{Q}$ and $R_t = R$
+
+\subsubsection{DCC Estimation}
+
+\begin{procedure}
+    The steps required to estimate the DCC model are:
+    \begin{enumerate}
+        \item Generate $h_{11t}$ and $h_{22t}$ from two univariate GARCH(1,1) models.
+        \item Construct the standard deviation matrix
+        \begin{equation}
+            S_t=\left[\begin{array}{cc}
+            \sqrt{h_{11 t}} & 0 \\
+            0 & \sqrt{h_{22 t}}
+        \end{array}\right]
+        \end{equation}
+        \item Compute the standardised residuals $z_{1t}$ and $z_{2t}$ which are then used to compute the symmetric moment matrix $\boldsymbol{Q}$.
+        \item  Construct the pseudo-correlation moment matrix $Q_t$ (the one with the GARCH(1,1) specification).
+        \item Compute the correlation matrix $R_t$.
+        \item The resultant DCC conditional covariance matrix is
+
+        \begin{equation}
+            \begin{aligned}
+            H_t & =\left[\begin{array}{cc}
+            \sqrt{h_{11 t}} & 0 \\
+            0 & \sqrt{h_{22 t}}
+            \end{array}\right]\left[\begin{array}{cc}
+            1 & \rho_{12 t} \\
+            \rho_{12 t} & 1
+            \end{array}\right]\left[\begin{array}{cc}
+            \sqrt{h_{11 t}} & 0 \\
+            0 & \sqrt{h_{22 t}}
+            \end{array}\right] \\
+            & =\left[\begin{array}{cc}
+            h_{11 t} & \rho_{12 t} \sqrt{h_{11 t} h_{22 t}} \\
+            \rho_{12 t} \sqrt{h_{11 t} h_{22 t}} & h_{22 t}
+            \end{array}\right] .
+            \end{aligned}
+        \end{equation}
+        \item Use an iterative algorithm to estimate all of the parameters simultaneously by maximising the log-likelihood function specified in terms of $H_t$.
+    \end{enumerate}
+\end{procedure}
+
+\subsection{Comparing CCC, DCC, BEKK}
+
+\paragraph{DCC} \mbox{}
+
+Unlike BEKK, DCC does not model correlation using
+\[\rho_{ij,t} = \dfrac{h_{ij,t}}{\sqrt{h_{ii,t} h_{jj,t}}}\]
+
+rather, DDC models correlation, $R_t$, directly.
+
+\paragraph{BEKK} \mbox{}
+
+Practically limited to small portfolios due to the exponentially increasing number of unknown parameters.
+
+\subsection{Dynamic Hedge Ratios}
+
+ Multivariate GARCH models can be used to estimate dynamic hedge ratios. Consider an investor who sells futures contracts to hedge against movements in the spot price of an asset. The return on the hedged portfolio, $r_{pt}$, is
+ \[r_{pt} = r_{st} - \eta r_{ft}\]
+
+ where $s$ indicates spot market, $f$ represents futures, and $\eta$ is the number of contracts the hedger sells for each unit of spot commodity, known as the \textbf{hedge ratio}.
+
+ The expected return and variance of the portfolio are:
+ \begin{equation}
+\begin{aligned}
+\mu_p & =\mathrm{E}\left(r_{s t}-\eta r_{f t}\right)=\mathrm{E}\left(r_{s t}\right)-\eta \mathrm{E}\left(r_{f t}\right) \\
+h_{p p} & =\mathrm{E}\left[\left(r_{p t}-\mu_p\right)^2\right]=h_{s s}+\eta^2 h_{f f}-2 \eta h_{s f}
+\end{aligned}
+\end{equation}
+
+The optimal minimum variance portfolio is found by minimising $h_{pp}$ by choice of $\eta$.
+
+
+\paragraph{Optimisation}
+
+\begin{procedure}
+Differentiate $h_{pp}$ wrt $\eta$, set to 0, and solve.
+\begin{equation}
+\frac{d h_{p p}}{d \eta}=2 \eta h_{ff}-2 h_{sf}=0 \Rightarrow \eta=\frac{h_{sf}}{h_{ff}}
+\end{equation}
+This gives the optimal hedge ratio, which is the ratio of the covariance of the log returns on the spot and future contracts to the variance of the returns on futures.
+\end{procedure}
+
+\paragraph{Introducing Dynamics}\mbox{}
+
+The traditional approach is to assume the index and its futures to be perfectly correlated, but this is unrealistic. This means it may be impossible to eliminate risk and the best we can do is to minimise it.
+
+To relax this assumption we respecify our variance and covariance terms to be time-varying. The resultant dynamic hedge ratio is then
+\[\eta_t = \dfrac{h_{sft}}{h_{fft}}\]
+To model the time variation in the conditional covariance, a bivariate GARCH model is required.
+
+\paragraph{Application to US Industry Portfolios} \mbox{}
+
+Consider the problem of hedging the log returns to the four US industry portfolios using the daily log returns and the futures contract on the S\&P 500 index. The constant hedge ratio for each industry portfolio is found by estimating the regression equation:
+\begin{equation}
+    \label{constant hedge ratio}
+    r_{st} = \beta_0 + \beta_1 r_{ft} + u_t,
+\end{equation}
+where $r_{st}$ represents the log returns of to the relevant industry portfolio, $r_{ft}$ represents the log returns to the three-month S\&P 500 futures contract, and $u_t$ is the disturbance term. This gives us the constant hedge ratios of 0.773, 0.787, 1.124, and 0.768 for the consumer goods, manufacturing, technology and health portfolios.
+
+The \textbf{dynamic hedge ratios} are computed using a bivariate dynamic conditional correlation (DCC) model specified for each industry relative to the S\&P 500 futures contract.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=12cm]{pics/DCC hedge ratios.png}
+    \caption{Dynamic hedge Ratios for US industry Portfolios compared to the constant hedge ratio (dashed line)}
+    \label{fig: dynamic hedge ratio}
+\end{figure}
+
 \newpage
+
+
+\section{Stochastic Volatility}
+\textbf{Chapter 12.6}
+In our GARCH models, there is no randomness included in the unobserved volatility process, and it is assumed that volatility can be computed exactly based on the information set $I_{t-1}$. There is an alternative called the stochastic volatility model given by
+
+\begin{equation}
+\label{stochastic volatility}
+\begin{aligned}
+r_t & =\sqrt{h_t} z_t, & & z_t \sim N(0,1) \\
+\log h_t & =\alpha+\phi \log h_{t-1}+v_t, & & v_t \sim N\left(0, \sigma_v^2\right),
+\end{aligned}
+\end{equation}
+
+in which both $z_t$ and $v_t$ are random disturbance terms and $r_t$ represents the centred returns.
+
+The name comes from the fact that the volatility of returns on the underlying asset is itself treated as a stochastic process. The presence of the disturbance term $v_t$ makes the variance ($h_t$) of $r_t$ a time-dependent stochastic process. There are now two random disturbances, one in returns $z_t$ and one in the variance $v_t$.
+
+Because $h_t$ appears in both equations, the variance process is indirectly determined by disturbances in returns, and there is a potential correlation between the two source errors.
+
+The $\sigma_v^2$ component governs the dispersion in the random component of the variance. When this variance is larger, we will have higher kurtosis. 
+
 \section{Realised Variance and Covariance}
 \textbf{Chapter 15}
+
+\subsection{Introduction}
+
+GARCH and stochastic volatility models treat volatility as latent/unobserved and are parametric models. With \textbf{Realised Variance}, volatility is observable and measures of realised variance are treated as observable, and a nonparametric model. It is based on observed/realised returns, hence the name.
+
+\begin{shaded}
+    At each point in time, asset price volatility is an unknown stochastic process. Once accumulated over time, this process is called the \textbf{quadratic variation}, and we want to estimate it. (it is equivalent to the time-varying conditional volatility we estimate with GARCH)
+
+    The main idea is that we can employ very high-frequency data to ensure a nearly instantaneous focus in estimation. The precision of the variance estimates tends to increase as the sampling interval decreases (higher frequency = higher precision).
+\end{shaded}
+
+\subsection{Discrete Data}
+
+High-frequency transaction data is not necessarily regularly spaced, unlike all the data we have seen so far. If we were looking at a binary independent variable of whether a trade has occurred, there will be clusters of many trades happening and tranquil periods.
+
+The appropriate statistical techniques for analysing such data are expected to be different from the techniques used to analyse regularly spaced financial time series data. In a 6.5-hour trading day, the maximum number of data points is M=23400, for 1-second returns M=23400, and for 1-minute returns M=390.
+
+To produce a sample with regularly spaced data, one approach is to fill the gaps with the last period's price/returns.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=12cm]{pics/irregular price data.png}
+    \caption{Interpolating price data}
+    \label{fig: fixing irregular data graph}
+\end{figure}
+
+
+\subsection{Realised Variance}
+
+\begin{definition}
+    Consider the log returns based on a particular sampling frequency $M$:
+    \[r_i = p_{i/M} - p_{i-1}/M, \qquad i=1,2,\ldots, M.\]
+
+    Then the realised variance for a trading day is defined as:
+    \begin{equation}
+        \label{Realised Variance}
+        RV(M) = \sum_{i=1}^M r_i^2
+    \end{equation}
+\end{definition}
+\newpage
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=10cm]{pics/RV signature plot.png}
+    \caption{Signature plot of the estimated realised variance}
+    \label{fig: RV signature}
+\end{figure}
+
+RV estimates are higher for smaller intervals and gradually decay as the sampling interval increases. Theoretically, when the intervals become infinitesimally small $M\rightarrow\infty$, we have \textbf{continuous sampling.}
+
+The limit is known as the integrated variance, $\operatorname{plim}\sim_{i=1}^M r_i^2 = \int_{t-1}^t \sigma_s^2 ds:=IV$.
+
+Realised variance estimates are a consistent estimator of Integrated Variance (IV).
+\begin{mdframed}
+    \[\operatorname{plim} RV(M) = IV\]
+\end{mdframed}
+
+
 
 
 

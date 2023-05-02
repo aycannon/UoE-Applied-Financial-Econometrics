@@ -29,6 +29,9 @@
 \usepackage{pgfkeys}
 \usepackage{subcaption}
 
+\newcommand\indep{\protect\mathpalette{\protect\independenT}{\perp}}
+\def\independenT#1#2{\mathrel{\rlap{$#1#2$}\mkern2mu{#1#2}}}
+
 
 \colorlet{shadecolor}{orange!15}
 \parindent 0in
@@ -55,7 +58,10 @@
 \tcolorboxenvironment{procedure}{boxrule=0pt,boxsep=0pt,colback={blue!10},left=8pt,right=8pt,enhanced jigsaw, borderline west={2pt}{0pt}{blue},sharp corners,before skip=10pt,after skip=10pt,breakable}
 \tcolorboxenvironment{proof}{boxrule=0pt,boxsep=0pt,blanker,borderline west={2pt}{0pt}{pink!80!white},left=8pt,right=8pt,sharp corners,before skip=10pt,after skip=10pt,breakable}
 
-
+\definecolor{codeblue}{rgb}{0.29296875, 0.51953125, 0.68359375}
+\definecolor{codegreen}{rgb}{0.47265625, 0.62890625, 0.40234375}
+\definecolor{codegray}{rgb}{0.95703125, 0.95703125, 0.95703125}
+\definecolor{codecrimson}{rgb}{0.87109375,0.3984375,0.3984375}
 
 \definecolor{contcol1}{rgb}{0.55, 0.71, 0.0}
 \definecolor{contcol2}{rgb}{0.0, 0.5, 0.69}
@@ -63,10 +69,7 @@
 
 % STATA in lstlistings
 {
-\definecolor{codeblue}{rgb}{0.29296875, 0.51953125, 0.68359375}
-\definecolor{codegreen}{rgb}{0.47265625, 0.62890625, 0.40234375}
-\definecolor{codegray}{rgb}{0.95703125, 0.95703125, 0.95703125}
-\definecolor{codecrimson}{rgb}{0.87109375,0.3984375,0.3984375}
+
 
 
 \lstset{frame=tb,
